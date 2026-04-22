@@ -1,0 +1,5 @@
+<?php
+
+// Stateless JWT: client just discards token.
+// You can later add blacklist if needed.
+json_success([], 'Logged out');
