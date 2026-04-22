@@ -1,0 +1,21 @@
+{
+  "name": "superdragon777/backend",
+  "description": "SuperDragon777 API backend",
+  "type": "project",
+  "require": {
+    "php": ">=8.0",
+    "firebase/php-jwt": "^6.10",
+    "vlucas/phpdotenv": "^5.6"
+  },
+  "autoload": {
+    "psr-4": {
+      "App\\": "api/"
+    },
+    "files": [
+      "api/helpers/db.php",
+      "api/helpers/auth.php",
+      "api/helpers/response.php",
+      "api/helpers/validator.php"
+    ]
+  }
+}
