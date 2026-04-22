@@ -1,0 +1,42 @@
+<?php
+
+$user  = require_auth();
+$input = json_decode(file_get_contents('php://input'), true) ?? [];
+
+require_fields(['amount'], $input);
+
+$amount = (float)$input['amount'];
+if ($amount <= 0) {
+    json_error('Amount must be greater than zero', 422);
+}
+
+$pdo = db();
+$pdo->beginTransaction();
+
+try {
+    // Check balance
+    $stmt = $pdo->prepare('SELECT balance FROM users WHERE id = ? FOR UPDATE');
+    $stmt->execute([$user['sub']]);
+    $row = $stmt->fetch();
+
+    if (!$row) {
+        throw new Exception('User not found');
+    }
+
+    if ((float)$row['balance'] < $amount) {
+        throw new Exception('Insufficient balance');
+    }
+
+    $stmt = $pdo->prepare('UPDATE users SET balance = balance - ? WHERE id = ?');
+    $stmt->execute([$amount, $user['sub']]);
+
+    $stmt = $pdo->prepare('INSERT INTO transactions (user_id, type, amount) VALUES (?, "withdraw", ?)');
+    $stmt->execute([$user['sub'], $amount]);
+
+    $pdo->commit();
+} catch (Exception $e) {
+    $pdo->rollBack();
+    json_error($e->getMessage(), 422);
+}
+
+json_success(['amount' => $amount], 'Withdraw successful');
