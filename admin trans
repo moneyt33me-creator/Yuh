@@ -1,0 +1,20 @@
+<?php
+
+$claims = require_auth();
+
+if (empty($claims['is_admin'])) {
+    json_error('Forbidden', 403);
+}
+
+$pdo = db();
+
+$stmt = $pdo->query('
+    SELECT t.id, t.user_id, u.email, t.type, t.amount, t.created_at
+    FROM transactions t
+    JOIN users u ON u.id = t.user_id
+    ORDER BY t.created_at DESC
+    LIMIT 200
+');
+$rows = $stmt->fetchAll();
+
+json_success(['transactions' => $rows], 'Transactions list');
